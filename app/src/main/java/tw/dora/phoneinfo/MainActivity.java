@@ -4,6 +4,7 @@ import android.Manifest;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -55,19 +56,7 @@ public class MainActivity extends AppCompatActivity {
         String imsi = tmgr.getSubscriberId(); //IMSI:國際移動用戶辨識碼:綁定sim卡(電話號碼)用這個
         Log.v("brad","IMSI: "+imsi); //466(國別台灣),92(中華電信)
 
-        //android 7(包含7)以前版本
-        if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.N){
-            amgr = AccountManager.get(this);
-            Account[] accounts = amgr.getAccounts();
-            Log.v("brad","count: "+ accounts.length);
-            for(Account account :accounts){
-                Log.v("brad",account.type+" : "+account.name);
-            }
-
-        } else{ //android 8(包含8)以後版本
-            //amgr = (AccountManager) getSystemService(Context.ACCOUNT_SERVICE);
-            Log.v("brad","android 8以後暫時不支援");
-        }
+        amgr = AccountManager.get(this);
 
     }
 
@@ -78,6 +67,38 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void test1(View view) {
+        //android 7(包含7)以前版本
+        if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.N){
+            Account[] accounts = amgr.getAccounts();
+            Log.v("brad","count: "+ accounts.length);
+            for(Account account :accounts){
+                Log.v("brad",account.type+" : "+account.name);
+            }
+
+        } else{ //android 8(包含8)以後版本
+            Log.v("brad","android 8以後暫時不支援");
+            Intent googlePicker = AccountManager.newChooseAccountIntent(
+                    null,
+                    null,
+                    new String[]{"com.google", "com.facebook.auth.login"},
+                    true,
+                    null,
+                    null,
+                    null,
+                    null
+            );
+            startActivityForResult(googlePicker, 0);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 0 && resultCode == RESULT_OK){
+            String type = data.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE);
+            String name = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+            Log.v("brad", type + ":" + name);
+        }
 
     }
 }
